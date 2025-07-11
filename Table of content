@@ -1,0 +1,69 @@
+<script setup>
+import { ref, onMounted } from 'vue'
+
+const tocItems = ref([])
+const activeId = ref(null)
+
+function generateId(text) {
+  return text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]+/g, '')
+}
+
+function scrollToElement(id) {
+  const el = document.getElementById(id)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
+
+function updateActiveSection() {
+  const headings = document.querySelectorAll('#content-area h2, #content-area h3')
+  let current = null
+
+  headings.forEach((el) => {
+    const top = el.getBoundingClientRect().top
+    if (top <= 80) current = el
+  })
+
+  if (current) activeId.value = current.id
+}
+
+onMounted(() => {
+  const headings = document.querySelectorAll('#content-area h2, #content-area h3')
+  const items = []
+
+  headings.forEach((el) => {
+    if (!el.id) {
+      el.id = generateId(el.innerText)
+    }
+    items.push({
+      id: el.id,
+      text: el.innerText,
+      level: el.tagName === 'H2' ? 2 : 3
+    })
+  })
+
+  tocItems.value = items
+
+  window.addEventListener('scroll', updateActiveSection)
+})
+</script>
+
+<template>
+  <div class="toc-wrapper p-4 rounded-xl bg-white shadow-lg w-full max-w-xs">
+    <h2 class="text-lg font-bold mb-2">Tabla de contenido</h2>
+    <ul class="space-y-1">
+      <li
+        v-for="item in tocItems"
+        :key="item.id"
+        :class="[
+          'cursor-pointer transition-colors duration-200',
+          item.level === 3 ? 'ml-4 text-sm' : 'font-medium',
+          activeId === item.id ? 'text-blue-600 font-bold' : 'text-gray-700 hover:text-blue-500'
+        ]"
+        @click="scrollToElement(item.id)"
+      >
+        {{ item.text }}
+      </li>
+    </ul>
+  </div>
+</template>
