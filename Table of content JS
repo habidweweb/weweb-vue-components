@@ -1,0 +1,68 @@
+<!-- Contenedor para el TOC -->
+<div id="toc" class="p-4 rounded-xl bg-white shadow-lg w-full max-w-xs">
+  <h2 class="text-lg font-bold mb-2">Tabla de contenido</h2>
+  <ul id="toc-list" class="space-y-1"></ul>
+</div>
+
+<!-- Contenedor del contenido -->
+<div id="content-area">
+  <!-- Aquí van tus h2, h3, párrafos, etc -->
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const tocList = document.getElementById("toc-list");
+    const headings = document.querySelectorAll("#content-area h2, #content-area h3");
+    const offset = 80; // distancia para detectar sección activa
+    let activeId = null;
+
+    function generateId(text) {
+      return text.toLowerCase().replace(/\s+/g, "-").replace(/[^\w\-]+/g, "");
+    }
+
+    headings.forEach((el) => {
+      if (!el.id) {
+        el.id = generateId(el.innerText);
+      }
+
+      const li = document.createElement("li");
+      li.textContent = el.innerText;
+      li.className = el.tagName === "H3"
+        ? "ml-4 text-sm cursor-pointer text-gray-700 hover:text-blue-500"
+        : "font-medium cursor-pointer text-gray-700 hover:text-blue-500";
+
+      li.dataset.target = el.id;
+      li.addEventListener("click", function () {
+        document.getElementById(el.id).scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      });
+
+      tocList.appendChild(li);
+    });
+
+    function updateActiveTOC() {
+      let current = null;
+      headings.forEach((el) => {
+        const top = el.getBoundingClientRect().top;
+        if (top <= offset) current = el;
+      });
+
+      if (current && current.id !== activeId) {
+        activeId = current.id;
+
+        document.querySelectorAll("#toc-list li").forEach((li) => {
+          if (li.dataset.target === activeId) {
+            li.classList.add("text-blue-600", "font-bold");
+          } else {
+            li.classList.remove("text-blue-600", "font-bold");
+          }
+        });
+      }
+    }
+
+    window.addEventListener("scroll", updateActiveTOC);
+    updateActiveTOC();
+  });
+</script>
